@@ -1,27 +1,29 @@
-import styles from "./Signup.module.css"
+import styles from "./Signup.module.css";
 
-import {useState} from 'react'
+import { useState } from "react";
+import { useSignup } from "../../hooks/useSignup";
 
 export default function Signup() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
 
-  const [email, setEmail] = useState("")
-  const [password,setPassword] = useState("")
-  const [displayName,setDisplayName] = useState("")
+  //using useSignup hook
+  const { error, isPending, signup } = useSignup()
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-    console.log(email,password,displayName);
-  }
-
+    e.preventDefault();
+    signup(email,password,displayName)
+  };
 
   return (
-    <form className={styles['signup-form']} onSubmit={handleSubmit}>
+    <form className={styles["signup-form"]} onSubmit={handleSubmit}>
       <h2>Sign Up</h2>
       <label>
         <span>Email</span>
         <input
           type="email"
-          onChange={(e)=>setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           value={email}
         />
       </label>
@@ -29,7 +31,7 @@ export default function Signup() {
         <span>Password</span>
         <input
           type="password"
-          onChange={(e)=>setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
           value={password}
         />
       </label>
@@ -37,13 +39,21 @@ export default function Signup() {
         <span>Display Name</span>
         <input
           type="text"
-          onChange={(e)=>setDisplayName(e.target.value)}
+          onChange={(e) => setDisplayName(e.target.value)}
           value={displayName}
         />
       </label>
-      <button type="submit" className="btn">
+      {!isPending && (
+        <button type="submit" className="btn">
           Sign up
-      </button>
+        </button>
+      )}
+      {isPending && (
+        <button className="btn" disabled>
+          Loading
+        </button>
+      )}
+      {error && <p>{error}</p>}
     </form>
-  )
+  );
 }
