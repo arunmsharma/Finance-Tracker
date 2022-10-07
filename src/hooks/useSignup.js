@@ -34,9 +34,6 @@ export function useSignup() {
   };
 
 
-
-
-
   return {
     error,
     isPending,
