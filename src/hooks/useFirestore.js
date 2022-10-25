@@ -2,7 +2,7 @@
 //and remove doc from firestore collections
 
 import { useReducer, useEffect, useState } from "react";
-import { projectFirestore } from "../firebase/config";
+import { projectFirestore, timestamp } from "../firebase/config";
 
 let initialState = {
   document: null,
@@ -61,8 +61,10 @@ export const useFirestore = (collection) => {
     disptach({ type: "IS_PENDING" });
 
     try {
+      const createdAt = timestamp.fromDate(new Date());
       const addedDocument = await ref.add({
-        doc,
+        ...doc,
+        createdAt
       });
       disptachIfNotCancelled({
         type: "ADDED_DOCUMENT",
