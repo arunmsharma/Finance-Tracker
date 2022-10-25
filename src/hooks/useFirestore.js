@@ -5,47 +5,89 @@ import { useReducer, useEffect, useState } from "react";
 import { projectFirestore } from "../firebase/config";
 
 let initialState = {
-    document: null,
-    isPending: false,
-    error : null,
-    success : null
-}
+  document: null,
+  isPending: false,
+  error: null,
+  success: null,
+};
 
-const firestoreReducer = (state,action) => {
-    switch(action.type){
-        default:
-            return state
-    }
-}
+const firestoreReducer = (state, action) => {
+  switch (action.type) {
+    case "IS_PENDING":
+      return {
+        isPending: true,
+        document: null,
+        success: false,
+        error: null,
+      };
 
+    case "ADDED_DOCUMENT":
+      return {
+        isPending: false,
+        document: action.payload,
+        success: true,
+        error: null,
+      };
+
+    case "ERROR":
+      return {
+        isPending: false,
+        document: null,
+        success: false,
+        error: action.payload,
+      };
+
+    default:
+      return state;
+  }
+};
 
 export const useFirestore = (collection) => {
+  const [response, disptach] = useReducer(firestoreReducer, initialState);
+  const [isCancelled, setIsCancelled] = useState(false);
 
-    const [response, disptach] = useReducer(firestoreReducer,initialState)
-    const [isCancelled, setIsCancelled] = useState(false)
+  //collection ref
+  const ref = projectFirestore.collection(collection);
 
-    //collection ref
-    const ref = projectFirestore.collection(collection)
-
-    // add document 
-    const addDocument = (doc) => {
-        
+  //only disptach if not cancelled
+  const disptachIfNotCancelled = (action) => {
+    if (!isCancelled) {
+      disptach(action);
     }
+  };
 
-    // delete the document
-    const deleteDocument = (id) => {
+  // add document
+  const addDocument = async (doc) => {
+    disptach({ type: "IS_PENDING" });
 
+    try {
+      const addedDocument = await ref.add({
+        doc,
+      });
+      disptachIfNotCancelled({
+        type: "ADDED_DOCUMENT",
+        payload: addedDocument,
+      });
+    } catch (err) {
+      disptachIfNotCancelled({
+        type: "ERROR",
+        payload: err.meessage,
+      });
     }
+  };
 
-    useEffect(()=> {
-        return () => {
-            setIsCancelled(true)
-        }
-    },[])
+  // delete the document
+  const deleteDocument = async (id) => {};
 
-    return {
-        addDocument,deleteDocument,response
-    }
-    
-    
-}
+  useEffect(() => {
+    return () => {
+      setIsCancelled(true);
+    };
+  }, []);
+
+  return {
+    addDocument,
+    deleteDocument,
+    response,
+  };
+};
